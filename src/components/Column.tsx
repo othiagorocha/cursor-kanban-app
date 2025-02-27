@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { Droppable, Draggable, DroppableProvided, DraggableProvided } from 'react-beautiful-dnd';
+import { Droppable, Draggable } from 'react-beautiful-dnd';
 import type { ColumnType, CardType } from './Board';
 import Card from './Card';
 import { PlusIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 
 interface ColumnProps {
   column: ColumnType;
+  onUpdateColumn?: (updatedColumn: ColumnType) => void;
 }
 
-const Column: React.FC<ColumnProps> = ({ column }) => {
+const Column: React.FC<ColumnProps> = ({ column, onUpdateColumn }) => {
   const [isAddingCard, setIsAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
 
@@ -21,7 +22,12 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
       description: '',
     };
 
-    column.cards = [...column.cards, newCard];
+    const updatedColumn = {
+      ...column,
+      cards: [...column.cards, newCard]
+    };
+
+    onUpdateColumn?.(updatedColumn);
     
     setNewCardTitle('');
     setIsAddingCard(false);
@@ -42,11 +48,13 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
       </div>
 
       <Droppable droppableId={column.id.toString()}>
-        {(provided: DroppableProvided) => (
+        {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="flex-1 p-4 space-y-3 min-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
+            className={`flex-1 p-4 space-y-3 min-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent ${
+              snapshot.isDraggingOver ? 'bg-blue-50/50' : ''
+            }`}
           >
             {column.cards.map((card, index) => (
               <Draggable
@@ -54,11 +62,12 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
                 draggableId={card.id.toString()}
                 index={index}
               >
-                {(dragProvided: DraggableProvided) => (
+                {(dragProvided, dragSnapshot) => (
                   <div
                     ref={dragProvided.innerRef}
                     {...dragProvided.draggableProps}
                     {...dragProvided.dragHandleProps}
+                    className={`${dragSnapshot.isDragging ? 'opacity-50' : ''}`}
                   >
                     <Card card={card} />
                   </div>
@@ -70,7 +79,7 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
         )}
       </Droppable>
 
-      <div className="p-3 border-t border-slate-200 bg-slate-50/50">
+      <div className="p-3 border-t border-slate-200">
         {isAddingCard ? (
           <div className="space-y-3">
             <textarea
