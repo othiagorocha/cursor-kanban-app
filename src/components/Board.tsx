@@ -52,56 +52,56 @@ const Board: React.FC<BoardProps> = ({ id, name }) => {
   };
 
   const onDragEnd = (result: DropResult) => {
-    try {
-      const { destination, source, draggableId } = result;
+    const { destination, source } = result;
 
-      // Se não houver destino, o card foi solto fora de uma coluna
-      if (!destination) return;
+    // Se não houver destino, o card foi solto fora de uma coluna
+    if (!destination) return;
 
-      // Se o destino for o mesmo local, não faz nada
-      if (
-        destination.droppableId === source.droppableId &&
-        destination.index === source.index
-      ) {
-        return;
-      }
-
-      // Encontra os índices das colunas de origem e destino
-      const sourceColIndex = columns.findIndex(
-        col => col.id.toString() === source.droppableId
-      );
-      const destColIndex = columns.findIndex(
-        col => col.id.toString() === destination.droppableId
-      );
-
-      // Se alguma coluna não for encontrada, retorna
-      if (sourceColIndex === -1 || destColIndex === -1) {
-        console.error('Coluna não encontrada');
-        return;
-      }
-
-      // Cria uma cópia profunda do estado para evitar mutação direta
-      const newColumns = JSON.parse(JSON.stringify(columns));
-
-      // Encontra o card que está sendo movido
-      const sourceCards = newColumns[sourceColIndex].cards;
-      const [movedCard] = sourceCards.splice(source.index, 1);
-
-      // Verifica se o card foi encontrado
-      if (!movedCard) {
-        console.error('Card não encontrado');
-        return;
-      }
-
-      // Adiciona o card na nova posição
-      const destinationCards = newColumns[destColIndex].cards;
-      destinationCards.splice(destination.index, 0, movedCard);
-
-      // Atualiza o estado com as novas posições
-      setColumns(newColumns);
-    } catch (error) {
-      console.error('Erro ao mover card:', error);
+    // Se o destino for o mesmo local, não faz nada
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
     }
+
+    // Encontra os índices das colunas de origem e destino
+    const sourceColIndex = columns.findIndex(
+      col => col.id.toString() === source.droppableId
+    );
+    const destColIndex = columns.findIndex(
+      col => col.id.toString() === destination.droppableId
+    );
+
+    // Se alguma coluna não for encontrada, retorna
+    if (sourceColIndex === -1 || destColIndex === -1) return;
+
+    // Cria uma cópia do estado atual
+    const newColumns = [...columns];
+    const sourceColumn = { ...newColumns[sourceColIndex] };
+    const destColumn = { ...newColumns[destColIndex] };
+    const sourceCards = [...sourceColumn.cards];
+    const destCards = [...destColumn.cards];
+
+    // Remove o card da coluna de origem
+    const [movedCard] = sourceCards.splice(source.index, 1);
+
+    // Adiciona o card na coluna de destino
+    if (sourceColIndex === destColIndex) {
+      // Movendo na mesma coluna
+      sourceCards.splice(destination.index, 0, movedCard);
+      sourceColumn.cards = sourceCards;
+      newColumns[sourceColIndex] = sourceColumn;
+    } else {
+      // Movendo entre colunas diferentes
+      destCards.splice(destination.index, 0, movedCard);
+      sourceColumn.cards = sourceCards;
+      destColumn.cards = destCards;
+      newColumns[sourceColIndex] = sourceColumn;
+      newColumns[destColIndex] = destColumn;
+    }
+
+    setColumns(newColumns);
   };
 
   return (

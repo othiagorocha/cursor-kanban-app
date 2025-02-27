@@ -67,7 +67,10 @@ const Column: React.FC<ColumnProps> = ({ column, onUpdateColumn }) => {
                     ref={dragProvided.innerRef}
                     {...dragProvided.draggableProps}
                     {...dragProvided.dragHandleProps}
-                    className={`${dragSnapshot.isDragging ? 'opacity-50' : ''}`}
+                    style={{
+                      ...dragProvided.draggableProps.style,
+                      opacity: dragSnapshot.isDragging ? 0.5 : 1
+                    }}
                   >
                     <Card card={card} />
                   </div>
