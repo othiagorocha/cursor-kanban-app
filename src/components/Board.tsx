@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import Column from './Column';
 
 interface BoardProps {
@@ -24,12 +24,17 @@ const Board: React.FC<BoardProps> = ({ id, name }) => {
     {
       id: 1,
       name: 'A Fazer',
-      cards: [],
+      cards: [
+        { id: 1, title: 'Tarefa 1', description: 'Descrição da tarefa 1' },
+        { id: 2, title: 'Tarefa 2', description: 'Descrição da tarefa 2' },
+      ],
     },
     {
       id: 2,
       name: 'Em Progresso',
-      cards: [],
+      cards: [
+        { id: 3, title: 'Tarefa 3', description: 'Descrição da tarefa 3' },
+      ],
     },
     {
       id: 3,

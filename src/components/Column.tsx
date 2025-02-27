@@ -46,11 +46,12 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
                 draggableId={card.id.toString()}
                 index={index}
               >
-                {(provided: DraggableProvided) => (
+                {(dragProvided: DraggableProvided) => (
                   <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
+                    ref={dragProvided.innerRef}
+                    {...dragProvided.draggableProps}
+                    {...dragProvided.dragHandleProps}
+                    className="mb-3"
                   >
                     <Card card={card} />
                   </div>
