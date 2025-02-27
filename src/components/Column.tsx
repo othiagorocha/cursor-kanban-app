@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Droppable, Draggable, DroppableProvided, DraggableProvided } from 'react-beautiful-dnd';
 import type { ColumnType, CardType } from './Board';
 import Card from './Card';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 
 interface ColumnProps {
   column: ColumnType;
@@ -28,9 +28,17 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
   };
 
   return (
-    <div className="bg-gray-50 rounded-xl w-80 flex-shrink-0 flex flex-col shadow-lg">
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800">{column.name}</h2>
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl w-80 flex-shrink-0 flex flex-col shadow-sm border border-slate-200">
+      <div className="p-4 border-b border-slate-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-800">{column.name}</h2>
+            <p className="text-sm text-slate-500">{column.cards.length} cards</p>
+          </div>
+          <button className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
+            <EllipsisHorizontalIcon className="w-6 h-6 text-slate-400" />
+          </button>
+        </div>
       </div>
 
       <Droppable droppableId={column.id.toString()}>
@@ -38,7 +46,7 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="flex-1 p-4 space-y-3 min-h-[200px] overflow-y-auto"
+            className="flex-1 p-4 space-y-3 min-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
           >
             {column.cards.map((card, index) => (
               <Draggable
@@ -51,7 +59,6 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
                     ref={dragProvided.innerRef}
                     {...dragProvided.draggableProps}
                     {...dragProvided.dragHandleProps}
-                    className="mb-3"
                   >
                     <Card card={card} />
                   </div>
@@ -63,26 +70,26 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
         )}
       </Droppable>
 
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-3 border-t border-slate-200 bg-slate-50/50">
         {isAddingCard ? (
           <div className="space-y-3">
-            <input
-              type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Digite o título do cartão"
+            <textarea
+              rows={2}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
+              placeholder="Digite o título do card..."
               value={newCardTitle}
               onChange={(e) => setNewCardTitle(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleAddCard()}
+              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleAddCard()}
             />
             <div className="flex gap-2">
               <button
-                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
                 onClick={handleAddCard}
               >
                 Adicionar
               </button>
               <button
-                className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200"
+                className="flex-1 px-4 py-2 bg-white text-slate-700 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors duration-200 text-sm font-medium"
                 onClick={() => setIsAddingCard(false)}
               >
                 Cancelar
@@ -91,11 +98,11 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
           </div>
         ) : (
           <button
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 w-full px-3 py-2 rounded-lg hover:bg-gray-100"
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors duration-200 w-full px-3 py-2 rounded-lg hover:bg-white group"
             onClick={() => setIsAddingCard(true)}
           >
             <PlusIcon className="w-5 h-5" />
-            <span>Adicionar cartão</span>
+            <span className="text-sm font-medium">Adicionar card</span>
           </button>
         )}
       </div>
