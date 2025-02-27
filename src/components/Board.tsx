@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DragDropContext, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, DropResult, DragStart } from 'react-beautiful-dnd';
 import Column from './Column';
 
 interface BoardProps {
@@ -51,6 +51,11 @@ const Board: React.FC<BoardProps> = ({ id, name }) => {
     );
   };
 
+  const onDragStart = (start: DragStart) => {
+    // Adicione aqui qualquer lógica que precise ser executada quando começar o drag
+    console.log('Drag iniciado:', start);
+  };
+
   const onDragEnd = (result: DropResult) => {
     const { destination, source } = result;
 
@@ -81,7 +86,7 @@ const Board: React.FC<BoardProps> = ({ id, name }) => {
     const sourceColumn = { ...newColumns[sourceColIndex] };
     const destColumn = { ...newColumns[destColIndex] };
     const sourceCards = [...sourceColumn.cards];
-    const destCards = [...destColumn.cards];
+    const destCards = destColumn.id === sourceColumn.id ? sourceCards : [...destColumn.cards];
 
     // Remove o card da coluna de origem
     const [movedCard] = sourceCards.splice(source.index, 1);
@@ -101,11 +106,12 @@ const Board: React.FC<BoardProps> = ({ id, name }) => {
       newColumns[destColIndex] = destColumn;
     }
 
+    // Atualiza o estado com as novas posições
     setColumns(newColumns);
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
+    <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-blue-50">
         <div className="max-w-[1600px] mx-auto px-4 py-8">
           {/* Header */}

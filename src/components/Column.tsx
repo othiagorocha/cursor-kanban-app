@@ -52,7 +52,8 @@ const Column: React.FC<ColumnProps> = ({ column, onUpdateColumn }) => {
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex-1 p-4 space-y-3 min-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent ${
+            style={{ minHeight: '200px' }}
+            className={`flex-1 p-4 space-y-3 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent transition-colors duration-200 ${
               snapshot.isDraggingOver ? 'bg-blue-50/50' : ''
             }`}
           >
@@ -69,7 +70,10 @@ const Column: React.FC<ColumnProps> = ({ column, onUpdateColumn }) => {
                     {...dragProvided.dragHandleProps}
                     style={{
                       ...dragProvided.draggableProps.style,
-                      opacity: dragSnapshot.isDragging ? 0.5 : 1
+                      opacity: dragSnapshot.isDragging ? 0.5 : 1,
+                      transform: dragSnapshot.isDragging
+                        ? dragProvided.draggableProps.style?.transform
+                        : 'none'
                     }}
                   >
                     <Card card={card} />
