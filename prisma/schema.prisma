@@ -1,38 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model Board {
-  id        Int      @id @default(autoincrement())
-  name      String
+  id        String   @id @default(cuid())
+  title     String
   columns   Column[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Column {
-  id        Int      @id @default(autoincrement())
-  name      String
+  id        String   @id @default(cuid())
+  title     String
   order     Int
-  boardId   Int
-  board     Board    @relation(fields: [boardId], references: [id])
-  cards     Card[]
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks     Task[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Card {
-  id          Int      @id @default(autoincrement())
+model Task {
+  id          String   @id @default(cuid())
   title       String
   description String?
-  order       Int
-  columnId    Int
-  column      Column   @relation(fields: [columnId], references: [id])
+  priority    String   // 'low' | 'medium' | 'high'
+  columnId    String
+  column      Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 } 

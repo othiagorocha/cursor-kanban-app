@@ -1,11 +1,26 @@
-import Board from './components/Board'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { RootLayout } from './components/layout/RootLayout';
+import { Home } from './pages/Home';
+import { Settings } from './pages/Settings';
+import { BoardPage } from './pages/boards/BoardPage';
+import { NewBoard } from './pages/boards/NewBoard';
+import { ThemeProvider } from './providers/ThemeProvider';
 
-function App() {
+export default function App() {
   return (
-    <div className="min-h-screen bg-background">
-      <Board id={1} name="Meu Kanban" />
-    </div>
-  )
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<RootLayout />}>
+            <Route index element={<Home />} />
+            <Route path="boards">
+              <Route path="new" element={<NewBoard />} />
+              <Route path=":id" element={<BoardPage />} />
+            </Route>
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
+  );
 }
-
-export default App

@@ -1,0 +1,50 @@
+{
+  "autoRun": "ask",
+  "formatOnSave": true,
+  "terminal": {
+    "shell": "powershell",
+    "cwd": "${workspaceRoot}"
+  },
+  "editor": {
+    "tabSize": 2,
+    "insertSpaces": true,
+    "wordWrap": "on",
+    "rulers": [80, 100],
+    "minimap": {
+      "enabled": true,
+      "showSlider": "always"
+    },
+    "bracketPairColorization": {
+      "enabled": true
+    }
+  },
+  "files": {
+    "autoSave": "onFocusChange",
+    "trimTrailingWhitespace": true,
+    "insertFinalNewline": true
+  },
+  "git": {
+    "enableSmartCommit": true,
+    "confirmSync": true,
+    "autofetch": true
+  },
+  "typescript": {
+    "updateImportsOnFileMove": "always",
+    "preferences": {
+      "importModuleSpecifier": "non-relative"
+    }
+  },
+  "tailwindCSS": {
+    "emmetCompletions": true,
+    "validate": true,
+    "hovers": true,
+    "suggestions": true
+  },
+  "search": {
+    "exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.git": true
+    }
+  }
+} 
