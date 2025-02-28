@@ -1,74 +1,56 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Board as BoardComponent } from '../../components/board/Board';
-import { fetchBoard } from '../../lib/api';
-import { Board as BoardType, Column, Task } from '../../types/task';
+import { Board as BoardType } from '@/types/task';
+import { Board } from '@/components/board/Board';
+import { AddColumnModal } from '@/components/board/AddColumnModal';
+import { fetchBoard } from '@/lib/api';
 
 export function BoardPage() {
   const { id } = useParams<{ id: string }>();
   const [board, setBoard] = useState<BoardType | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
+
+  const loadBoard = async () => {
+    if (!id) return;      
+    try {
+      const data = await fetchBoard(id);  
+      if (data) {
+        setBoard(data);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar board:', error);
+    }
+  };
 
   useEffect(() => {
-    async function loadBoard() {
-      if (!id) return;
-
-      try {
-        const data = await fetchBoard(id);
-        setBoard({
-          id: data.id,
-          title: data.title,
-          columns: data.columns.map((col: { id: string; title: string; order: number; tasks: any[] }) => ({
-            id: col.id,
-            title: col.title,
-            status: col.order === 0 ? 'todo' : col.order === 1 ? 'in-progress' : 'done',
-            tasks: col.tasks.map((task: { id: string; title: string; description: string | null; priority: string; createdAt: string; updatedAt: string }) => ({
-              id: task.id,
-              title: task.title,
-              description: task.description,
-              priority: task.priority as 'low' | 'medium' | 'high',
-              status: col.order === 0 ? 'todo' : col.order === 1 ? 'in-progress' : 'done',
-              createdAt: new Date(task.createdAt),
-              updatedAt: new Date(task.updatedAt),
-            })),
-          })),
-        });
-        setError(null);
-      } catch (err) {
-        console.error('Erro ao carregar o board:', err);
-        setError('Erro ao carregar o board. Tente novamente mais tarde.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
     loadBoard();
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-lg">Carregando...</div>
-      </div>
-    );
-  }
+  if (!board) return null;
 
-  if (error) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-destructive">{error}</div>
+  return (
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">{board.title}</h1>
+        <button
+          onClick={() => setIsAddColumnModalOpen(true)}
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-md"
+        >
+          Nova Coluna
+        </button>
       </div>
-    );
-  }
 
-  if (!board) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-muted-foreground">Board não encontrado</div>
-      </div>
-    );
-  }
+      <Board 
+        columns={board.columns} 
+        onColumnsUpdated={loadBoard}
+      />
 
-  return <BoardComponent title={board.title} initialColumns={board.columns} />;
+      <AddColumnModal
+        boardId={board.id}
+        isOpen={isAddColumnModalOpen}
+        onClose={() => setIsAddColumnModalOpen(false)}
+        onColumnAdded={loadBoard}
+      />
+    </div>
+  );
 } 

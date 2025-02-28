@@ -1,0 +1,206 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { PlusIcon, ClockIcon, LayoutDashboardIcon, InfoIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { fetchBoards } from '../../lib/api';
+import { Button } from '../../components/ui/Button';
+
+interface BoardWithCount {
+  id: string;
+  title: string;
+  updatedAt: Date;
+  _count: {
+    columns: number;
+    tasks: number;
+  };
+}
+
+const boardExamples = [
+  {
+    title: 'Projeto Website',
+    description: 'Organize as tarefas do desenvolvimento do site em colunas como "Backlog", "Em Progresso" e "Concluído".'
+  },
+  {
+    title: 'Tarefas Pessoais',
+    description: 'Gerencie suas atividades diárias com colunas como "Para Fazer", "Fazendo" e "Feito".'
+  },
+  {
+    title: 'Planejamento Semanal',
+    description: 'Distribua suas tarefas ao longo da semana usando colunas para cada dia.'
+  }
+];
+
+export function Boards() {
+  const [boards, setBoards] = useState<BoardWithCount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadBoards() {
+      try {
+        const data = await fetchBoards();
+        setBoards(data);
+        setError(null);
+      } catch (err) {
+        console.error('Erro ao carregar boards:', err);
+        setError('Não foi possível carregar os boards. Tente novamente mais tarde.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadBoards();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center">
+        <div className="text-lg text-muted-foreground">Carregando boards...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
+        {error}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-medium text-foreground">
+            Seus Boards
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Total de {boards.length} board{boards.length === 1 ? '' : 's'}
+          </p>
+        </div>
+        <Button
+          to="/boards/new"
+          leftIcon={<PlusIcon className="h-4 w-4" />}
+        >
+          Novo Board
+        </Button>
+      </div>
+
+      {/* Lista de Boards */}
+      {boards.length === 0 ? (
+        <div className="space-y-8">
+          {/* Seção de Introdução */}
+          <div className="rounded-lg border bg-card p-6">
+            <div className="flex items-start gap-4">
+              <div className="rounded-full bg-primary/10 p-3">
+                <LayoutDashboardIcon className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium">Como usar os Boards?</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Boards são espaços de trabalho onde você pode organizar suas tarefas em colunas. 
+                  Cada coluna representa um estágio diferente do seu fluxo de trabalho.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Exemplos de Uso */}
+          <div>
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-medium">
+              <InfoIcon className="h-5 w-5 text-primary" />
+              Exemplos de Boards
+            </h3>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {boardExamples.map((example, index) => (
+                <div 
+                  key={index}
+                  className="rounded-lg border bg-card p-6"
+                >
+                  <h4 className="font-medium">{example.title}</h4>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {example.description}
+                  </p>
+                  <Button
+                    to="/boards/new"
+                    variant="secondary"
+                    className="mt-4 w-full"
+                  >
+                    Usar este modelo
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card p-8 text-center">
+            <div className="rounded-full bg-primary/10 p-3">
+              <PlusIcon className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="mt-4 text-lg font-medium">Comece seu primeiro Board</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Crie um board para começar a organizar suas tarefas de forma visual e eficiente.
+            </p>
+            <Button
+              to="/boards/new"
+              className="mt-4"
+              leftIcon={<PlusIcon className="h-4 w-4" />}
+            >
+              Criar Primeiro Board
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {boards.map((board) => (
+            <Link
+              key={board.id}
+              to={`/boards/${board.id}`}
+              className="group relative overflow-hidden rounded-lg border bg-card p-6 transition-colors hover:border-primary"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium group-hover:text-primary">
+                  {board.title}
+                </h3>
+                <span className="flex items-center rounded-full bg-secondary px-2 py-1 text-xs font-medium">
+                  {board._count.tasks} tarefas
+                </span>
+              </div>
+              
+              <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <ClockIcon className="h-4 w-4" />
+                  <span>
+                    {format(new Date(board.updatedAt), "d 'de' MMMM", {
+                      locale: ptBR,
+                    })}
+                  </span>
+                </div>
+                <span>•</span>
+                <span>{board._count.columns} colunas</span>
+              </div>
+
+              <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-primary/40 to-primary opacity-0 transition-opacity group-hover:opacity-100" />
+            </Link>
+          ))}
+
+          {/* Card para adicionar novo board */}
+          <Button
+            to="/boards/new"
+            variant="ghost"
+            className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card p-6 text-center transition-colors hover:border-primary hover:bg-accent/50"
+          >
+            <div className="rounded-full bg-primary/10 p-3">
+              <PlusIcon className="h-6 w-6 text-primary" />
+            </div>
+            <span className="mt-2 font-medium">Adicionar Board</span>
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+} 

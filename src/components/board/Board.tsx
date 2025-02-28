@@ -1,112 +1,75 @@
-import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import { useState } from 'react';
-import { Column as ColumnType, Task } from '../../types/task';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { Column as ColumnType } from '@/types/task';
 import { Column } from './Column';
+import { EditColumnModal } from './EditColumnModal';
 
 interface BoardProps {
-  title: string;
-  initialColumns: ColumnType[];
+  columns: ColumnType[];
+  onColumnsUpdated: () => void;
 }
 
-export function Board({ title, initialColumns }: BoardProps) {
-  const [columns, setColumns] = useState(initialColumns);
+export function Board({ columns, onColumnsUpdated }: BoardProps) {
+  const [editingColumn, setEditingColumn] = useState<ColumnType | null>(null);
 
-  const onDragEnd = (result: DropResult) => {
-    const { destination, source, type } = result;
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
 
-    // Se não houver destino, não fazer nada
-    if (!destination) return;
+    const { source, destination, type } = result;
 
-    // Se o destino for o mesmo que a origem, não fazer nada
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
+    if (type === 'COLUMN') {
+      if (source.index === destination.index) return;
+      onColumnsUpdated();
       return;
     }
 
-    // Movendo colunas
-    if (type === 'column') {
-      const newColumns = Array.from(columns);
-      const [removed] = newColumns.splice(source.index, 1);
-      newColumns.splice(destination.index, 0, removed);
-      setColumns(newColumns);
+    if (source.droppableId === destination.droppableId && 
+        source.index === destination.index) {
       return;
     }
 
-    // Movendo tarefas
-    const sourceColumn = columns.find(
-      (col) => col.id === source.droppableId
-    );
-    const destColumn = columns.find(
-      (col) => col.id === destination.droppableId
-    );
-
-    if (!sourceColumn || !destColumn) return;
-
-    // Movendo na mesma coluna
-    if (source.droppableId === destination.droppableId) {
-      const newTasks = Array.from(sourceColumn.tasks);
-      const [removed] = newTasks.splice(source.index, 1);
-      newTasks.splice(destination.index, 0, removed);
-
-      const newColumns = columns.map((col) =>
-        col.id === sourceColumn.id
-          ? { ...col, tasks: newTasks }
-          : col
-      );
-
-      setColumns(newColumns);
-      return;
-    }
-
-    // Movendo entre colunas
-    const sourceTasks = Array.from(sourceColumn.tasks);
-    const [removed] = sourceTasks.splice(source.index, 1);
-    const destinationTasks = Array.from(destColumn.tasks);
-    destinationTasks.splice(destination.index, 0, removed);
-
-    const newColumns = columns.map((col) => {
-      if (col.id === source.droppableId) {
-        return { ...col, tasks: sourceTasks };
-      }
-      if (col.id === destination.droppableId) {
-        return { ...col, tasks: destinationTasks };
-      }
-      return col;
-    });
-
-    setColumns(newColumns);
+    onColumnsUpdated();
   };
 
   return (
-    <div className="h-full min-h-screen bg-background p-4">
-      <h1 className="mb-8 text-2xl font-bold">{title}</h1>
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <Droppable droppableId="board" type="COLUMN" direction="horizontal">
+        {(provided) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className="grid grid-cols-1 md:grid-cols-3 gap-4"
+          >
+            {columns.map((column, index) => (
+              <Draggable key={column.id} draggableId={column.id} index={index}>
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                  >
+                    <Column
+                      column={column}
+                      index={index}
+                      onEdit={() => setEditingColumn(column)}
+                    />
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
 
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable
-          droppableId="board"
-          type="column"
-          direction="horizontal"
-        >
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="grid grid-cols-1 gap-4 md:grid-cols-3"
-            >
-              {columns.map((column, index) => (
-                <Column
-                  key={column.id}
-                  column={column}
-                  index={index}
-                />
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-    </div>
+      {editingColumn && (
+        <EditColumnModal
+          column={editingColumn}
+          isOpen={true}
+          onClose={() => setEditingColumn(null)}
+          onSuccess={onColumnsUpdated}
+        />
+      )}
+    </DragDropContext>
   );
 } 
